@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id          Int                 @id @default(autoincrement())
+  nombre      String
+  email       String              @unique
+  password    String
+  createdAt   DateTime            @default(now())
+  empresa     Empresa?
+  historiales HistorialProgreso[]
+}
+
+model Empresa {
+  id                 Int        @id @default(autoincrement())
+  nombre             String
+  actividadEconomica String
+  trabajadores       Int
+  ciudad             String?
+  nivelRiesgo        Int        @default(1)
+  usuarioId          Int        @unique
+  usuario            Usuario    @relation(fields: [usuarioId], references: [id])
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  progresos          Progreso[]
+}
+
+model Estandar {
+  id          Int        @id @default(autoincrement())
+  numero      Int        @unique
+  titulo      String
+  descripcion String
+  items       Item[]
+  progresos   Progreso[]
+}
+
+model Item {
+  id         Int            @id @default(autoincrement())
+  texto      String
+  evidencias String[]
+  orden      Int            @default(0)
+  estandarId Int
+  estandar   Estandar       @relation(fields: [estandarId], references: [id])
+  progresos  ItemProgreso[]
+
+  @@index([estandarId])
+}
+
+model Progreso {
+  id            Int            @id @default(autoincrement())
+  empresaId     Int
+  estandarId    Int
+  empresa       Empresa        @relation(fields: [empresaId], references: [id])
+  estandar      Estandar       @relation(fields: [estandarId], references: [id])
+  updatedAt     DateTime       @updatedAt
+  itemsProgreso ItemProgreso[]
+
+  @@unique([empresaId, estandarId])
+  @@index([empresaId])
+}
+
+model ItemProgreso {
+  id         Int      @id @default(autoincrement())
+  progresoId Int
+  itemId     Int
+  completado Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+  progreso   Progreso @relation(fields: [progresoId], references: [id])
+  item       Item     @relation(fields: [itemId], references: [id])
+
+  @@unique([progresoId, itemId])
+  @@index([completado])
+}
+
+model HistorialProgreso {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int
+  estandarId  Int
+  itemId      Int?
+  accion      String
+  descripcion String
+  createdAt   DateTime @default(now())
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([usuarioId, createdAt])
+  @@index([createdAt])
+}

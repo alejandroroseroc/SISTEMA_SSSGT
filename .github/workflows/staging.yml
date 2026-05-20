@@ -1,0 +1,59 @@
+name: Deploy Staging V2
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias backend
+        run: cd backend && npm install
+
+      - name: Ejecutar tests del backend
+        run: cd backend && npm test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: test
+
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy a Railway
+        run: echo "Railway auto-deploys desde GitHub. Configura en el panel de Railway con root directory = backend/"
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: FrontEnd/sgsst-fe/package-lock.json
+
+      - name: Instalar dependencias frontend
+        run: cd FrontEnd/sgsst-fe && npm install
+
+      - name: Build frontend
+        run: cd FrontEnd/sgsst-fe && npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Deploy a Vercel
+        run: echo "Vercel auto-deploys desde GitHub. Configura en el panel de Vercel con root directory = FrontEnd/sgsst-fe/"
