@@ -12,6 +12,7 @@ import Reportes from './pages/Reportes';
 import Perfil from './pages/Perfil';
 import ReporteEjecutivo from './pages/ReporteEjecutivo';
 import MiProgreso from './pages/MiProgreso';
+import MisEvidencias from './pages/MisEvidencias';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/reportes" element={<Reportes />} />
           <Route path="/reporte-ejecutivo" element={<ReporteEjecutivo />} />
           <Route path="/mi-progreso" element={<MiProgreso />} />
+          <Route path="/mis-evidencias" element={<MisEvidencias />} />
           <Route path="/perfil" element={<Perfil />} />
         </Route>
       </Routes>

@@ -42,19 +42,22 @@ export default function ReporteEjecutivo() {
   const navigate = useNavigate();
   const [reporte, setReporte] = useState(null);
   const [historial, setHistorial] = useState([]);
+  const [evidencias, setEvidencias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [descargandoArl, setDescargandoArl] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
-        const [repRes, histRes] = await Promise.all([
+        const [repRes, histRes, evRes] = await Promise.all([
           api.get('/reportes/ejecutivo'),
           api.get('/reportes/historial?limit=100'),
+          api.get('/evidencias').catch(() => ({ data: { data: [] } })),
         ]);
         setReporte(repRes.data.data);
         const items = histRes.data.data?.items ?? histRes.data.registros ?? [];
         setHistorial(items);
+        setEvidencias(evRes.data.data || []);
       } catch {
         // empresa no configurada
       } finally {
@@ -151,6 +154,12 @@ export default function ReporteEjecutivo() {
   const lineData = buildLineData(historial);
   const radarData = porEstandar.map((e) => ({ estandar: e.titulo, porcentaje: e.porcentaje }));
 
+  // Build evidence counts by estandarId
+  const evPorEstandar = {};
+  for (const ev of evidencias) {
+    if (ev.estandarId) evPorEstandar[ev.estandarId] = (evPorEstandar[ev.estandarId] || 0) + 1;
+  }
+
   const donutData = porEstandar.map((e) => ({
     numero: e.numero,
     titulo: e.titulo,
@@ -226,15 +235,15 @@ export default function ReporteEjecutivo() {
             </div>
           </div>
 
-          {/* Nivel de riesgo */}
+          {/* Evidencias */}
           <div className="card" style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '0.75rem', color: 'var(--texto-suave)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-              Nivel de riesgo
+              Evidencias
             </div>
-            <div style={{ fontSize: '2.8rem', fontWeight: 700, color: empresa.nivelRiesgo >= 4 ? 'var(--rojo)' : empresa.nivelRiesgo >= 3 ? 'var(--dorado)' : 'var(--verde)', fontFamily: 'DM Serif Display, serif', lineHeight: 1 }}>
-              {empresa.nivelRiesgo}
+            <div style={{ fontSize: '2.8rem', fontWeight: 700, color: 'var(--dorado)', fontFamily: 'DM Serif Display, serif', lineHeight: 1 }}>
+              {evidencias.length}
             </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--texto-suave)', marginTop: 4 }}>{empresa.actividad}</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--texto-suave)', marginTop: 4 }}>documentos subidos</div>
           </div>
         </div>
 
@@ -249,12 +258,14 @@ export default function ReporteEjecutivo() {
                 <th>Completados</th>
                 <th className="table-mobile-hide">Total</th>
                 <th>%</th>
+                <th className="table-mobile-hide">Evidencias</th>
                 <th>Estado</th>
               </tr>
             </thead>
             <tbody>
               {porEstandar.map((e) => {
                 const sem = semaforo(e.porcentaje);
+                const evCount = evPorEstandar[e.numero] ?? 0;
                 return (
                   <tr key={e.numero}>
                     <td><strong>{e.numero}</strong></td>
@@ -262,6 +273,11 @@ export default function ReporteEjecutivo() {
                     <td>{e.itemsCompletados}</td>
                     <td className="table-mobile-hide">{e.itemsTotal}</td>
                     <td><strong style={{ color: sem.color }}>{e.porcentaje}%</strong></td>
+                    <td className="table-mobile-hide">
+                      <span style={{ fontSize: '0.82rem', color: evCount > 0 ? 'var(--dorado)' : 'var(--texto-suave)' }}>
+                        {evCount > 0 ? `📎 ${evCount}` : '—'}
+                      </span>
+                    </td>
                     <td>
                       <span
                         className="badge"
@@ -343,6 +359,58 @@ export default function ReporteEjecutivo() {
             </table>
           </div>
         )}
+
+        {/* Evidencias documentales */}
+        <div className="card mb32" style={{ borderTop: '3px solid var(--dorado)' }}>
+          <h3 style={{ fontSize: '1.05rem', marginBottom: 4, color: 'var(--texto)' }}>
+            📎 Evidencias documentales
+          </h3>
+          <p style={{ fontSize: '0.88rem', color: 'var(--texto-suave)', marginBottom: 16 }}>
+            Documentos PDF cargados como soporte de cumplimiento
+          </p>
+          {evidencias.length === 0 ? (
+            <div className="alert alert-dorado" style={{ marginBottom: 0 }}>
+              <span className="alert-icon">💡</span>
+              <div>
+                No hay evidencias cargadas. Ve a cada estándar para subir los documentos de soporte.
+              </div>
+            </div>
+          ) : (
+            <table className="resumen-tabla">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th className="table-mobile-hide">Estándar</th>
+                  <th>Tamaño</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {evidencias.slice(0, 10).map((ev) => {
+                  const est = porEstandar.find((e) => e.numero === ev.estandarId);
+                  const kb = ev.tamano < 1024 * 1024
+                    ? `${(ev.tamano / 1024).toFixed(1)} KB`
+                    : `${(ev.tamano / (1024 * 1024)).toFixed(1)} MB`;
+                  return (
+                    <tr key={ev.id}>
+                      <td>📄 {ev.nombre}</td>
+                      <td className="table-mobile-hide">{est ? `${est.numero}. ${est.titulo}` : '—'}</td>
+                      <td style={{ fontSize: '0.82rem', color: 'var(--texto-suave)' }}>{kb}</td>
+                      <td style={{ fontSize: '0.82rem', color: 'var(--texto-suave)' }}>
+                        {new Date(ev.createdAt).toLocaleDateString('es-CO')}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+          {evidencias.length > 10 && (
+            <p className="hint" style={{ marginTop: 8, textAlign: 'right' }}>
+              Mostrando 10 de {evidencias.length} evidencias
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

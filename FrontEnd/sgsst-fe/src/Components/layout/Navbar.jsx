@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 const NAV_LINKS = [
   { to: '/dashboard', label: 'Inicio' },
   { to: '/estandares', label: 'Estándares' },
+  { to: '/mis-evidencias', label: 'Evidencias' },
   { to: '/mi-progreso', label: 'Mi progreso' },
   { to: '/reporte-ejecutivo', label: 'Reportes' },
   { to: '/educacion', label: 'Guía' },

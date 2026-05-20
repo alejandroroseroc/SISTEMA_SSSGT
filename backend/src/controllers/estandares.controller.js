@@ -1,8 +1,16 @@
 const estandaresService = require('../services/estandares.service');
+const empresaService = require('../services/empresa.service');
 
-exports.listar = async (_req, res, next) => {
+exports.listar = async (req, res, next) => {
   try {
-    const estandares = await estandaresService.listarEstandares();
+    let empresaId = null;
+    try {
+      const empresa = await empresaService.obtenerEmpresa(req.userId);
+      if (empresa) empresaId = empresa.id;
+    } catch {
+      // sin empresa — se devuelven estandares sin conteos de evidencias
+    }
+    const estandares = await estandaresService.listarEstandares(empresaId);
     return res.json({ estandares });
   } catch (err) {
     next(err);

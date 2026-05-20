@@ -70,6 +70,7 @@ export default function Dashboard() {
   const enProgreso = dash?.enProgreso ?? 0;
   const sinIniciar = dash?.sinIniciar ?? 7;
   const completados = 7 - enProgreso - sinIniciar;
+  const completitud = dash?.completitudSgsst ?? null;
 
   // Estándar con avance parcial más reciente
   const continuarEstandar = dash?.porEstandar?.find((e) => e.porcentaje > 0 && e.porcentaje < 100) ?? null;
@@ -156,6 +157,58 @@ export default function Dashboard() {
                 <div className="label">Sin iniciar</div>
               </div>
             </div>
+
+            {/* Estado de preparación para inspección */}
+            {completitud && (
+              <div className="card mb32" style={{
+                borderLeft: `4px solid ${completitud.listo ? 'var(--verde)' : 'var(--dorado)'}`,
+              }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: completitud.listo ? 'var(--verde)' : 'var(--dorado)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Estado de preparación para inspección
+                </div>
+                {completitud.listo ? (
+                  <div>
+                    <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>✅ <strong>¡Tu SG-SST está completo!</strong></div>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--texto-suave)', marginBottom: 12 }}>
+                      Has completado todos los estándares y tienes evidencias de respaldo. Puedes descargar tu reporte ejecutivo para presentar ante la ARL.
+                    </p>
+                    <Link to="/reporte-ejecutivo" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+                      Descargar reporte completo →
+                    </Link>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: '1.1rem' }}>{completitud.checklistCompletado ? '✅' : '⬜'}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>
+                            Checklist: todos los ítems completados
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--texto-suave)' }}>
+                            {completitud.estandaresConChecklist}/{completitud.totalEstandares} estándares al 100%
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: '1.1rem' }}>{completitud.tieneEvidenciasTodas ? '✅' : '⬜'}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>
+                            Evidencias: documentos subidos en todos los estándares
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--texto-suave)' }}>
+                            {completitud.estandaresConEvidencia}/{completitud.totalEstandares} estándares con documentos
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--texto-suave)', margin: 0 }}>
+                      💡 Estás a {completitud.totalEstandares - Math.min(completitud.estandaresConChecklist, completitud.estandaresConEvidencia)} pasos de tener tu SG-SST completo
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Continúa donde quedaste */}
             {continuarEstandar && (

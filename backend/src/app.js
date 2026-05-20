@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -12,12 +13,14 @@ const estandaresRoutes = require('./routes/estandares.routes');
 const progresoRoutes = require('./routes/progreso.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const reportesRoutes = require('./routes/reportes.routes');
+const evidenciasRoutes = require('./routes/evidencias.routes');
 
 const app = express();
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
@@ -35,6 +38,7 @@ app.use('/api/estandares', estandaresRoutes);
 app.use('/api/progreso', progresoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/evidencias', evidenciasRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });

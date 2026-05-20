@@ -18,17 +18,18 @@ model Usuario {
 }
 
 model Empresa {
-  id                 Int        @id @default(autoincrement())
+  id                 Int         @id @default(autoincrement())
   nombre             String
   actividadEconomica String
   trabajadores       Int
   ciudad             String?
-  nivelRiesgo        Int        @default(1)
-  usuarioId          Int        @unique
-  usuario            Usuario    @relation(fields: [usuarioId], references: [id])
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  nivelRiesgo        Int         @default(1)
+  usuarioId          Int         @unique
+  usuario            Usuario     @relation(fields: [usuarioId], references: [id])
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
   progresos          Progreso[]
+  evidencias         Evidencia[]
 }
 
 model Estandar {
@@ -91,4 +92,22 @@ model HistorialProgreso {
   @@index([usuarioId])
   @@index([usuarioId, createdAt])
   @@index([createdAt])
+}
+
+model Evidencia {
+  id           Int      @id @default(autoincrement())
+  nombre       String
+  nombreArchivo String
+  rutaArchivo  String
+  mimeType     String   @default("application/pdf")
+  tamano       Int
+  empresaId    Int
+  usuarioId    Int
+  estandarId   Int?
+  itemId       Int?
+  createdAt    DateTime @default(now())
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+
+  @@index([empresaId])
+  @@index([empresaId, estandarId])
 }

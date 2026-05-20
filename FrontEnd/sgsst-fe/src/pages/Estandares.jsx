@@ -27,6 +27,7 @@ export default function Estandares() {
           api.get('/dashboard'),
         ]);
         setEmpresa(empRes.data.empresa);
+        // estandares ya incluye tieneEvidencias y numEvidencias desde el backend
         setEstandares(estRes.data.estandares);
         const map = {};
         for (const e of dashRes.data.porEstandar) map[e.id] = e.porcentaje;
@@ -118,9 +119,22 @@ export default function Estandares() {
               return (
                 <Link key={est.id} to={`/estandares/${est.id}`} style={{ textDecoration: 'none' }}>
                   <div className="std-card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div className="std-num">{est.numero}</div>
-                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: sem.color }}>{sem.label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div className="std-num">{est.numero}</div>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: sem.color }}>{sem.label}</span>
+                      </div>
+                      {est.tieneEvidencias ? (
+                        <span style={{
+                          fontSize: '0.72rem', fontWeight: 600, padding: '2px 7px', borderRadius: 20,
+                          background: 'var(--dorado-suave)', color: 'var(--dorado)',
+                          border: '1px solid var(--dorado)', whiteSpace: 'nowrap',
+                        }}>
+                          📁 {est.numEvidencias} docs
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.72rem', color: 'var(--texto-suave)' }}>Sin documentos</span>
+                      )}
                     </div>
                     <div className="std-title">{est.titulo}</div>
                     <div className="std-desc">{est.descripcion}</div>

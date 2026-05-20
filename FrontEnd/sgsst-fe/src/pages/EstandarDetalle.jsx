@@ -1,6 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
+import EvidenciasPanel from '../components/evidencias/EvidenciasPanel';
+
+function EvidenciasIndicator({ estandarId }) {
+  const [count, setCount] = useState(null);
+  useEffect(() => {
+    api.get(`/evidencias/estandar/${estandarId}`)
+      .then((r) => setCount(r.data.data?.length ?? 0))
+      .catch(() => setCount(0));
+  }, [estandarId]);
+  if (count === null) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+      <span style={{ fontSize: '0.82rem', color: 'var(--texto-suave)' }}>Documentos de evidencia:</span>
+      <span style={{
+        fontSize: '0.82rem', fontWeight: 700,
+        color: count > 0 ? 'var(--dorado)' : 'var(--texto-suave)',
+      }}>
+        {count > 0 ? `📁 ${count} subidos` : 'Ninguno aún'}
+      </span>
+    </div>
+  );
+}
 
 export default function EstandarDetalle() {
   const { id } = useParams();
@@ -93,6 +115,7 @@ export default function EstandarDetalle() {
             <div className="progress-fill" style={{ width: `${porcentaje}%` }} />
           </div>
           <p className="hint mt8">{completados} de {total} ítems completados</p>
+          <EvidenciasIndicator estandarId={parseInt(id)} />
         </div>
 
         <div className="card mb32">
@@ -120,6 +143,8 @@ export default function EstandarDetalle() {
             </ul>
           </div>
         )}
+
+        <EvidenciasPanel estandarId={parseInt(id)} />
 
         {porcentaje === 100 && (
           <div className="alert alert-verde">

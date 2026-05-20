@@ -159,6 +159,7 @@ exports.obtenerReporteEjecutivo = async (empresaId) => {
     if (porcentaje === 100) estandaresCompletados++;
 
     return {
+      id: est.id,
       numero: est.numero,
       titulo: est.titulo,
       itemsCompletados: completados,
